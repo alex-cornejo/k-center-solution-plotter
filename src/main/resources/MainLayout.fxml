@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="700.0" prefWidth="835.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.jaca.kcenterplotter.view.RootLayoutController">
+   <top>
+      <AnchorPane prefHeight="87.0" prefWidth="700.0" BorderPane.alignment="CENTER">
+         <children>
+            <Button layoutX="178.0" layoutY="10.0" mnemonicParsing="false" onAction="#onActionbLoadInstance" prefHeight="25.0" prefWidth="121.0" text="Load instance" AnchorPane.leftAnchor="178.0" />
+            <TextField fx:id="tfK" layoutX="392.0" layoutY="10.0" prefHeight="25.0" prefWidth="99.0" />
+            <Label layoutX="332.0" layoutY="50.0" text="Outliers" />
+            <TextField fx:id="tfOutliers" layoutX="392.0" layoutY="46.0" prefHeight="25.0" prefWidth="98.0" />
+            <Button layoutX="178.0" layoutY="46.0" mnemonicParsing="false" onAction="#onActionbLoadSolution" prefHeight="25.0" prefWidth="123.0" text="Load solution" />
+            <Label layoutX="369.0" layoutY="14.0" text="K" />
+            <Label fx:id="lInstance" layoutX="46.0" layoutY="14.0" prefHeight="15.0" prefWidth="114.0" text="Instance" AnchorPane.leftAnchor="10.0" AnchorPane.topAnchor="10.0" />
+         </children>
+      </AnchorPane>
+   </top>
+   <center>
+      <Pane fx:id="pane" prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER">
+         <BorderPane.margin>
+            <Insets />
+         </BorderPane.margin></Pane>
+   </center>
+   <right>
+      <AnchorPane prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER">
+         <children>
+            <GridPane fx:id="gpDetails" alignment="CENTER" gridLinesVisible="true" layoutX="7.0" layoutY="37.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0">
+              <columnConstraints>
+                <ColumnConstraints halignment="CENTER" hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                <ColumnConstraints halignment="CENTER" hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+              </columnConstraints>
+              <rowConstraints>
+                <RowConstraints minHeight="30.0" prefHeight="30.0" vgrow="SOMETIMES" />
+              </rowConstraints>
+               <children>
+                  <Label text="Center" />
+                  <Label prefHeight="17.0" prefWidth="66.0" text="Nodes" GridPane.columnIndex="1" />
+               </children>
+            </GridPane>
+         </children>
+      </AnchorPane>
+   </right>
+</BorderPane>
