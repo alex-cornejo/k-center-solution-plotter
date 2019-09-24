@@ -18,6 +18,7 @@
             <Button layoutX="178.0" layoutY="46.0" mnemonicParsing="false" onAction="#onActionbLoadSolution" prefHeight="25.0" prefWidth="123.0" text="Load solution" />
             <Label layoutX="369.0" layoutY="14.0" text="K" />
             <Label fx:id="lInstance" layoutX="46.0" layoutY="14.0" prefHeight="15.0" prefWidth="114.0" text="Instance" AnchorPane.leftAnchor="10.0" AnchorPane.topAnchor="10.0" />
+            <Button layoutX="748.0" layoutY="9.0" mnemonicParsing="false" onAction="#onActionbLoadAssigments" text="Load assigments" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0" />
          </children>
       </AnchorPane>
    </top>

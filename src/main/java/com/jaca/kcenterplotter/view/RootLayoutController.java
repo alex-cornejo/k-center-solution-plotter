@@ -66,53 +66,74 @@ public class RootLayoutController implements Initializable {
     public void onActionbLoadInstance() throws IOException {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Open KCenter Solution File");
-        fileChooser.getExtensionFilters().add( new FileChooser.ExtensionFilter("JSON", "*.json"));
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("JSON", "*.json"));
         File selectedFile = fileChooser.showOpenDialog(this.stage);
-        lInstance.setText(selectedFile.getName());
-        instancePath = selectedFile.getPath();
+        if (selectedFile != null) {
+            lInstance.setText(selectedFile.getName());
+            instancePath = selectedFile.getPath();
 
-        Gson gson = new Gson();
-        BufferedReader br = new BufferedReader(new FileReader(instancePath));
+            Gson gson = new Gson();
+            BufferedReader br = new BufferedReader(new FileReader(instancePath));
 
-        kcSolution = gson.fromJson(br, new TypeToken<KCSolution>() {
-        }.getType());
+            kcSolution = gson.fromJson(br, new TypeToken<KCSolution>() {
+            }.getType());
 
-        coordinates = FileUtil.readNodes(kcSolution.getInstance());
+            coordinates = FileUtil.readNodes(kcSolution.getInstance());
 
-        double xMin = coordinates.get(0)[0];
-        double xMax = coordinates.get(0)[0];
-        double yMin = coordinates.get(0)[1];
-        double yMax = coordinates.get(0)[1];
-        for (double[] coordinate : coordinates) {
-            if (coordinate[0] < xMin) {
-                xMin = coordinate[0];
+            double xMin = coordinates.get(0)[0];
+            double xMax = coordinates.get(0)[0];
+            double yMin = coordinates.get(0)[1];
+            double yMax = coordinates.get(0)[1];
+            for (double[] coordinate : coordinates) {
+                if (coordinate[0] < xMin) {
+                    xMin = coordinate[0];
+                }
+                if (coordinate[0] > xMax) {
+                    xMax = coordinate[0];
+                }
+                if (coordinate[1] < yMin) {
+                    yMin = coordinate[1];
+                }
+                if (coordinate[1] > yMax) {
+                    yMax = coordinate[1];
+                }
             }
-            if (coordinate[0] > xMax) {
-                xMax = coordinate[0];
+            coordsNorm = FileUtil.normNodes(coordinates, xMin, xMax, yMin, yMax,
+                    (int) pane.getWidth() - paddingPane * 2, (int) pane.getHeight() - paddingPane * 2);
+
+            int h = (int) pane.getHeight() - paddingPane;
+            for (int[] coordinate : coordsNorm) {
+                coordinate[0] += paddingPane;
+                coordinate[1] = h - coordinate[1];
             }
-            if (coordinate[1] < yMin) {
-                yMin = coordinate[1];
-            }
-            if (coordinate[1] > yMax) {
-                yMax = coordinate[1];
-            }
+            drawNodes();
         }
-        coordsNorm = FileUtil.normNodes(coordinates, xMin, xMax, yMin, yMax,
-                (int) pane.getWidth() - paddingPane * 2, (int) pane.getHeight() - paddingPane * 2);
-
-        int h = (int) pane.getHeight() - paddingPane;
-        for (int[] coordinate : coordsNorm) {
-            coordinate[0] += paddingPane;
-            coordinate[1] = h - coordinate[1];
-        }
-        drawNodes();
     }
 
     @FXML
     public void onActionbLoadSolution() {
         tfOutliers.setText(Integer.toString(kcSolution.getOutliers().length));
+        tfK.setText(Integer.toString(kcSolution.getCenters().length));
         drawKCSolution();
         drawTags();
+    }
+
+    @FXML
+    public void onActionbLoadAssigments() {
+
+        GraphicsContext gc = canvas.getGraphicsContext2D();
+        int i = 0;
+        for (Center center : kcSolution.getCenters()) {
+            gc.setStroke(colors[i]);
+
+            for (int node : center.getNodes()) {
+                if (node != center.getCenter()) {
+                    gc.strokeLine(coordsNorm.get(center.getCenter())[0] + radiusNode / 2, coordsNorm.get(center.getCenter())[1] + radiusNode / 2,
+                            coordsNorm.get(node)[0] + radiusNode / 2, coordsNorm.get(node)[1] + radiusNode / 2);
+                }
+            }
+            i++;
+        }
     }
 
     @Override
@@ -149,12 +170,11 @@ public class RootLayoutController implements Initializable {
         int i = 0;
         for (Center center : kcSolution.getCenters()) {
             gc.setFill(colors[i]);
+            
             double[] x = {coordsNorm.get(center.getCenter())[0] - radiusNode, coordsNorm.get(center.getCenter())[0], coordsNorm.get(center.getCenter())[0] + radiusNode};
-
             double[] y = {coordsNorm.get(center.getCenter())[1] + radiusNode, coordsNorm.get(center.getCenter())[1] - radiusNode, coordsNorm.get(center.getCenter())[1] + radiusNode};
 
             gc.fillPolygon(x, y, 3);
-//            gc.fillOval(coordsNorm.get(center.getCenter())[0], coordsNorm.get(center.getCenter())[1], radiusNode, radiusNode);
             for (int node : center.getNodes()) {
                 if (node != center.getCenter()) {
                     gc.fillOval(coordsNorm.get(node)[0], coordsNorm.get(node)[1], radiusNode, radiusNode);
@@ -166,7 +186,6 @@ public class RootLayoutController implements Initializable {
         gc.setFill(Color.RED);
         for (int outlier : kcSolution.getOutliers()) {
             gc.fillOval(coordsNorm.get(outlier)[0], coordsNorm.get(outlier)[1], radiusNode, radiusNode);
-
         }
     }
 
