@@ -170,7 +170,7 @@ public class RootLayoutController implements Initializable {
         int i = 0;
         for (Center center : kcSolution.getCenters()) {
             gc.setFill(colors[i]);
-            
+
             double[] x = {coordsNorm.get(center.getCenter())[0] - radiusNode, coordsNorm.get(center.getCenter())[0], coordsNorm.get(center.getCenter())[0] + radiusNode};
             double[] y = {coordsNorm.get(center.getCenter())[1] + radiusNode, coordsNorm.get(center.getCenter())[1] - radiusNode, coordsNorm.get(center.getCenter())[1] + radiusNode};
 
