@@ -40,7 +40,6 @@ public class RootLayoutController implements Initializable {
             Color.BLACK, Color.YELLOWGREEN, Color.TOMATO, Color.PINK};
     private KCSolution kcSolution;
     private Set<RowConstraints> rows = new HashSet<>();
-    private List<Color> colorsList = new ArrayList<>();
     private boolean canvasLoaded = false;
 
     @FXML
@@ -152,7 +151,7 @@ public class RootLayoutController implements Initializable {
         GraphicsContext gc = canvas.getGraphicsContext2D();
         int i = 0;
         for (Center center : kcSolution.getCenters()) {
-            gc.setStroke(colorsList.get(i));
+            gc.setStroke(colors[i % colors.length]);
             for (int node : center.getNodes()) {
                 if (node != center.getCenter()) {
                     gc.strokeLine(
@@ -197,11 +196,8 @@ public class RootLayoutController implements Initializable {
         GraphicsContext gc = canvas.getGraphicsContext2D();
 
         int i = 0;
-        var rand = new Random();
-        colorsList.clear();
         for (Center center : kcSolution.getCenters()) {
-            colorsList.add(colors[rand.nextInt(colors.length)]);
-            gc.setFill(colorsList.get(i));
+            gc.setFill(colors[i % colors.length]);
 
             double x = coordsNorm.get(center.getCenter())[0];
             double y = coordsNorm.get(center.getCenter())[1];
@@ -241,7 +237,7 @@ public class RootLayoutController implements Initializable {
         int rowsCount = kcSolution.getCenters().length;
         for (int i = 0; i < rowsCount; i++) {
             Rectangle rectangle = new Rectangle(30, 20);
-            rectangle.setFill(colorsList.get(i));
+            rectangle.setFill(colors[i % colors.length]);
 
             Label label = new Label(Integer.toString(kcSolution.getCenters()[i].getNodes().length));
             gpDetails.add(rectangle, 0, i + 1);
