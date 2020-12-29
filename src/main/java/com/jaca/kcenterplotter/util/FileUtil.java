@@ -1,6 +1,8 @@
 
 package com.jaca.kcenterplotter.util;
 
+import org.apache.commons.math3.ml.distance.EuclideanDistance;
+
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
@@ -9,6 +11,24 @@ import java.util.Arrays;
 import java.util.List;
 
 public class FileUtil {
+
+    public static double[][] getAdjacencyMatrix(List<double[]> nodes) {
+
+        double[][] adjacencyMatrix = new double[nodes.size()][nodes.size()];
+        var euc = new EuclideanDistance();
+        for (int i = 0; i < nodes.size(); i++) {
+            for (int j = i + 1; j < nodes.size(); j++) {
+
+                double[] v1 = nodes.get(i);
+                double[] v2 = nodes.get(j);
+
+                double d = euc.compute(v1, v2);
+                adjacencyMatrix[i][j] = d;
+                adjacencyMatrix[j][i] = d;
+            }
+        }
+        return adjacencyMatrix;
+    }
 
     public static List<double[]> readNodes(String fileName) throws IOException {
 

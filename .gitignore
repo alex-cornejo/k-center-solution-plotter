@@ -27,3 +27,7 @@ target/*
 # IDE
 *.iml
 .idea/*
+.classpath
+.factorypath
+.project
+.settings/*

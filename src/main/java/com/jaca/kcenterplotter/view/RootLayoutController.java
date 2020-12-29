@@ -22,7 +22,9 @@ import javafx.stage.Stage;
 
 import java.io.*;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.ResourceBundle;
 
 public class RootLayoutController implements Initializable {
@@ -60,6 +62,21 @@ public class RootLayoutController implements Initializable {
     private void initCanvas() {
         canvas = new Canvas(pane.getWidth(), pane.getHeight());
         pane.getChildren().add(canvas);
+    }
+
+    private void validSolution() {
+        int n = coordinates.size();
+        int[] repetitions = new int[n];
+        for (Center c : kcSolution.getCenters()) {
+            for (int i : c.getNodes()) {
+                repetitions[i]++;
+            }
+        }
+        for (int i = 0; i < n; i++) {
+            if (repetitions[i] != 1) {
+                System.out.println(String.format("vertex %d is assigned %d times.", i, repetitions[i]));
+            }
+        }
     }
 
     @FXML
@@ -120,15 +137,18 @@ public class RootLayoutController implements Initializable {
 
     @FXML
     public void onActionbLoadAssigments() {
-
+        double fitness = kcSolution.computeFitness(FileUtil.getAdjacencyMatrix(coordinates));
+        System.out.printf("Fitness is: %f\n", fitness);
+        validSolution();
         GraphicsContext gc = canvas.getGraphicsContext2D();
         int i = 0;
         for (Center center : kcSolution.getCenters()) {
-            gc.setStroke(colors[i]);
+            gc.setStroke(colorsList.get(i));
 
             for (int node : center.getNodes()) {
                 if (node != center.getCenter()) {
-                    gc.strokeLine(coordsNorm.get(center.getCenter())[0] + radiusNode / 2, coordsNorm.get(center.getCenter())[1] + radiusNode / 2,
+                    gc.strokeLine(coordsNorm.get(center.getCenter())[0] + radiusNode / 2,
+                            coordsNorm.get(center.getCenter())[1] + radiusNode / 2,
                             coordsNorm.get(node)[0] + radiusNode / 2, coordsNorm.get(node)[1] + radiusNode / 2);
                 }
             }
@@ -158,6 +178,8 @@ public class RootLayoutController implements Initializable {
 
     }
 
+    List<Color> colorsList = new ArrayList<>();
+
     private void drawKCSolution() {
         if (!canvasLoaded) {
             initCanvas();
@@ -168,11 +190,17 @@ public class RootLayoutController implements Initializable {
         GraphicsContext gc = canvas.getGraphicsContext2D();
 
         int i = 0;
+        var rand = new Random();
+        colorsList.clear();
         for (Center center : kcSolution.getCenters()) {
-            gc.setFill(colors[i]);
+            colorsList.add(colors[rand.nextInt(colors.length)]);
+            gc.setFill(colorsList.get(i));
 
-            double[] x = {coordsNorm.get(center.getCenter())[0] - radiusNode, coordsNorm.get(center.getCenter())[0], coordsNorm.get(center.getCenter())[0] + radiusNode};
-            double[] y = {coordsNorm.get(center.getCenter())[1] + radiusNode, coordsNorm.get(center.getCenter())[1] - radiusNode, coordsNorm.get(center.getCenter())[1] + radiusNode};
+            double[] x = {coordsNorm.get(center.getCenter())[0] - radiusNode, coordsNorm.get(center.getCenter())[0],
+                    coordsNorm.get(center.getCenter())[0] + radiusNode};
+            double[] y = {coordsNorm.get(center.getCenter())[1] + radiusNode,
+                    coordsNorm.get(center.getCenter())[1] - radiusNode,
+                    coordsNorm.get(center.getCenter())[1] + radiusNode};
 
             gc.fillPolygon(x, y, 3);
             for (int node : center.getNodes()) {
@@ -194,7 +222,6 @@ public class RootLayoutController implements Initializable {
         gc.clearRect(0, 0, canvas.getWidth(), canvas.getWidth());
     }
 
-
     private void drawTags() {
         if (gpDetails.getRowConstraints().size() > 1) {
             int rowsCount = gpDetails.getRowConstraints().size();
@@ -204,7 +231,7 @@ public class RootLayoutController implements Initializable {
         }
         for (int i = 0; i < kcSolution.getCenters().length; i++) {
             Rectangle rectangle = new Rectangle(30, 20);
-            rectangle.setFill(colors[i]);
+            rectangle.setFill(colorsList.get(i));
 
             Label label = new Label(Integer.toString(kcSolution.getCenters()[i].getNodes().length));
             gpDetails.add(rectangle, 0, i + 1);
