@@ -37,10 +37,9 @@ public class FileUtil {
         BufferedReader reader = new BufferedReader(new FileReader(fileName));
         String line = reader.readLine();
         String[] lineArr = line.trim().split("\\s+");
-        if(lineArr.length==1){
+        if (lineArr.length == 1) {
             nodes = new ArrayList<>(Integer.parseInt(line));
-        }
-        else{
+        } else {
             double[] coord = Arrays.stream(Arrays.copyOfRange(lineArr, 1, lineArr.length)).mapToDouble(Double::valueOf).toArray();
             nodes.add(coord);
         }
