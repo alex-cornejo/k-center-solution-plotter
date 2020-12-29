@@ -20,10 +20,12 @@ import javafx.scene.shape.Rectangle;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.net.URL;
-import java.util.List;
-import java.util.ResourceBundle;
+import java.util.*;
 
 public class RootLayoutController implements Initializable {
 
@@ -37,6 +39,9 @@ public class RootLayoutController implements Initializable {
     private final Color[] colors = {Color.GREEN, Color.BLUE, Color.CADETBLUE, Color.DARKGRAY, Color.PURPLE, Color.GOLD,
             Color.BLACK, Color.YELLOWGREEN, Color.TOMATO, Color.PINK};
     private KCSolution kcSolution;
+    private Set<RowConstraints> rows = new HashSet<>();
+    private List<Color> colorsList = new ArrayList<>();
+    private boolean canvasLoaded = false;
 
     @FXML
     private Label lInstance;
@@ -53,6 +58,9 @@ public class RootLayoutController implements Initializable {
     @FXML
     private GridPane gpDetails;
 
+    @FXML
+    private TextField tfFitness;
+
     public void setStage(Stage stage) {
         this.stage = stage;
     }
@@ -60,6 +68,21 @@ public class RootLayoutController implements Initializable {
     private void initCanvas() {
         canvas = new Canvas(pane.getWidth(), pane.getHeight());
         pane.getChildren().add(canvas);
+    }
+
+    private void validSolution() {
+        int n = coordinates.size();
+        int[] repetitions = new int[n];
+        for (Center c : kcSolution.getCenters()) {
+            for (int i : c.getNodes()) {
+                repetitions[i]++;
+            }
+        }
+        for (int i = 0; i < n; i++) {
+            if (repetitions[i] != 1) {
+                System.out.printf("vertex %d is assigned %d times.%n", i, repetitions[i]);
+            }
+        }
     }
 
     @FXML
@@ -107,6 +130,8 @@ public class RootLayoutController implements Initializable {
                 coordinate[1] = h - coordinate[1];
             }
             drawNodes();
+            clearGridPane();
+            tfFitness.setText("");
         }
     }
 
@@ -120,16 +145,24 @@ public class RootLayoutController implements Initializable {
 
     @FXML
     public void onActionbLoadAssigments() {
-
+        double fitness = kcSolution.computeFitness(FileUtil.getAdjacencyMatrix(coordinates));
+        System.out.printf("Fitness is: %f\n", fitness);
+        tfFitness.setText(String.format("%.2f", fitness));
+        validSolution();
         GraphicsContext gc = canvas.getGraphicsContext2D();
         int i = 0;
         for (Center center : kcSolution.getCenters()) {
-            gc.setStroke(colors[i]);
-
+            gc.setStroke(colorsList.get(i));
             for (int node : center.getNodes()) {
                 if (node != center.getCenter()) {
-                    gc.strokeLine(coordsNorm.get(center.getCenter())[0] + radiusNode / 2, coordsNorm.get(center.getCenter())[1] + radiusNode / 2,
-                            coordsNorm.get(node)[0] + radiusNode / 2, coordsNorm.get(node)[1] + radiusNode / 2);
+                    gc.strokeLine(
+                            //center
+                            coordsNorm.get(center.getCenter())[0],
+                            coordsNorm.get(center.getCenter())[1],
+
+                            // node
+                            coordsNorm.get(node)[0] + radiusNode / 2,
+                            coordsNorm.get(node)[1] + radiusNode / 2);
                 }
             }
             i++;
@@ -140,8 +173,6 @@ public class RootLayoutController implements Initializable {
     public void initialize(URL url, ResourceBundle rb) {
     }
 
-    boolean canvasLoaded = false;
-
     private void drawNodes() {
         if (!canvasLoaded) {
             initCanvas();
@@ -150,12 +181,10 @@ public class RootLayoutController implements Initializable {
             clearCanvas();
         }
         GraphicsContext gc = canvas.getGraphicsContext2D();
-
         gc.setFill(Color.BLACK);
         for (int[] coordinate : coordsNorm) {
             gc.fillOval(coordinate[0], coordinate[1], radiusNode, radiusNode);
         }
-
     }
 
     private void drawKCSolution() {
@@ -168,13 +197,18 @@ public class RootLayoutController implements Initializable {
         GraphicsContext gc = canvas.getGraphicsContext2D();
 
         int i = 0;
+        var rand = new Random();
+        colorsList.clear();
         for (Center center : kcSolution.getCenters()) {
-            gc.setFill(colors[i]);
+            colorsList.add(colors[rand.nextInt(colors.length)]);
+            gc.setFill(colorsList.get(i));
 
-            double[] x = {coordsNorm.get(center.getCenter())[0] - radiusNode, coordsNorm.get(center.getCenter())[0], coordsNorm.get(center.getCenter())[0] + radiusNode};
-            double[] y = {coordsNorm.get(center.getCenter())[1] + radiusNode, coordsNorm.get(center.getCenter())[1] - radiusNode, coordsNorm.get(center.getCenter())[1] + radiusNode};
+            double x = coordsNorm.get(center.getCenter())[0];
+            double y = coordsNorm.get(center.getCenter())[1];
+            double[] coordX = {x - radiusNode, x, x + radiusNode};
+            double[] coordY = {y + radiusNode, y - radiusNode, y + radiusNode};
 
-            gc.fillPolygon(x, y, 3);
+            gc.fillPolygon(coordX, coordY, 3);    // print center
             for (int node : center.getNodes()) {
                 if (node != center.getCenter()) {
                     gc.fillOval(coordsNorm.get(node)[0], coordsNorm.get(node)[1], radiusNode, radiusNode);
@@ -194,22 +228,27 @@ public class RootLayoutController implements Initializable {
         gc.clearRect(0, 0, canvas.getWidth(), canvas.getWidth());
     }
 
+    private void clearGridPane() {
+        if (gpDetails.getRowConstraints().size() > 1) {
+            gpDetails.getRowConstraints().removeAll(rows);
+            rows.clear();
+            gpDetails.getChildren().removeIf(node -> GridPane.getRowIndex(node) != null);
+        }
+    }
 
     private void drawTags() {
-        if (gpDetails.getRowConstraints().size() > 1) {
-            int rowsCount = gpDetails.getRowConstraints().size();
-            for (int i = 0; i < rowsCount - 1; i++) {
-                gpDetails.getRowConstraints().remove(1);
-            }
-        }
-        for (int i = 0; i < kcSolution.getCenters().length; i++) {
+        clearGridPane();
+        int rowsCount = kcSolution.getCenters().length;
+        for (int i = 0; i < rowsCount; i++) {
             Rectangle rectangle = new Rectangle(30, 20);
-            rectangle.setFill(colors[i]);
+            rectangle.setFill(colorsList.get(i));
 
             Label label = new Label(Integer.toString(kcSolution.getCenters()[i].getNodes().length));
             gpDetails.add(rectangle, 0, i + 1);
             gpDetails.add(label, 1, i + 1);
-            gpDetails.getRowConstraints().add(new RowConstraints(40));
+            RowConstraints row = new RowConstraints(40);
+            rows.add(row);
+            gpDetails.getRowConstraints().add(row);
         }
     }
 }
